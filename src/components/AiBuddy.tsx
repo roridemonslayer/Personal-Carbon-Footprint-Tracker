@@ -10,7 +10,7 @@ const funFacts = [
   'Remote work can reduce your carbon footprint by up to 1,800 pounds of CO2 per year! 🏠', 
   'Recycling one aluminum can saves enough energy to power a TV for 3 hours! ♻️', 
   'A laptop uses 80% less energy than a desktop computer! 💻',
-  'The average Americans carbon footprint is 16 tons, one of the highest in the world! 🌎',
+  'The average American\'s carbon footprint is 16 tons, one of the highest in the world! 🌎',
   'Flying round trip from New York to London generates about 986 kg of CO2 per passenger! ✈️',
   'Eating locally produced food can reduce CO2 emissions from transportation by up to 5%! 🥕',
   'Using public transportation instead of driving can reduce your carbon footprint by 4,800 pounds annually! 🚌',
@@ -30,7 +30,14 @@ const knowledgeBase = {
   'global warming': 'Global warming is the long-term heating of Earth\'s climate system due to human activities, primarily fossil fuel burning, which increases heat-trapping greenhouse gas levels in Earth\'s atmosphere. 🌡️🔥',
   'sustainability': 'Sustainability means meeting our own needs without compromising the ability of future generations to meet their needs. It encompasses economic, environmental, and social factors. 🌱♾️',
   'recycling': 'Recycling reduces waste sent to landfills, conserves natural resources, and reduces pollution. Recycling one ton of paper saves about 17 trees and 7,000 gallons of water! ♻️📄',
-  'electric vehicles': 'Electric vehicles (EVs) run on electricity instead of fossil fuels, producing fewer emissions. An EV can reduce emissions by an average of 1.5 million grams of CO2 annually compared to a gasoline car! 🚗⚡'
+  'electric vehicles': 'Electric vehicles (EVs) run on electricity instead of fossil fuels, producing fewer emissions. An EV can reduce emissions by an average of 1.5 million grams of CO2 annually compared to a gasoline car! 🚗⚡',
+  'co2': 'CO2 (carbon dioxide) is a greenhouse gas that traps heat in the atmosphere. Human activities like burning fossil fuels, deforestation, and industrial processes have increased CO2 levels by over 45% since pre-industrial times! 🏭',
+  'emissions': 'Emissions are the release of gases and particles into the atmosphere. CO2 emissions are the primary driver of global climate change, with about 35 billion tons released globally each year! 🌫️',
+  'methane': 'Methane is a greenhouse gas thats 25 times more potent than CO2. It comes from sources like livestock, rice paddies, and natural gas production. Reducing methane is crucial for fighting climate change! 🐄',
+  'fossil fuels': 'Fossil fuels (coal, oil, natural gas) are formed from prehistoric plants and animals. When burned, they release CO2 that was stored millions of years ago, contributing significantly to climate change. ⛽',
+  'deforestation': 'Deforestation accounts for about 10% of global CO2 emissions. Trees absorb CO2, so cutting them down both reduces carbon absorption and releases stored carbon! 🌲',
+  'ocean acidification': 'Ocean acidification occurs when oceans absorb CO2 from the atmosphere, making them more acidic. This threatens marine life, especially coral reefs and shellfish! 🌊',
+  'paris agreement': 'The Paris Agreement is an international treaty on climate change adopted in 2015. It aims to limit global warming to well below 2°C above pre-industrial levels, preferably to 1.5°C. 🌍'
 };
 
 export function AiBuddy({
@@ -59,29 +66,46 @@ export function AiBuddy({
     setMessage(messages[activeTab] || messages.dashboard);
   }, [activeTab]);
 
-  // Set daily fun fact
+  // Set daily fun fact on initial load
   useEffect(() => {
     const today = new Date().toDateString();
     const storedFact = localStorage.getItem('lastFunFact');
     const storedDate = localStorage.getItem('lastFunFactDate');
     
     if (storedDate !== today) {
-      const randomFact = funFacts[Math.floor(Math.random() * funFacts.length)];
+      const randomFact = getRandomFact();
       setDailyFunFact(randomFact);
       localStorage.setItem('lastFunFact', randomFact);
       localStorage.setItem('lastFunFactDate', today);
       
       // Add fun fact to chat history
-      setChatHistory(prev => [
-        ...prev, 
+      setChatHistory([
+        {
+          type: 'ai',
+          text: `👋 Welcome to Eco Buddy! I'm here to help with sustainability questions.`,
+          timestamp: new Date()
+        },
         {
           type: 'ai',
           text: `📚 Daily Fun Fact: ${randomFact}`,
-          timestamp: new Date()
+          timestamp: new Date(Date.now() + 100)
         }
       ]);
     } else if (storedFact) {
       setDailyFunFact(storedFact);
+      // Initialize chat with welcome and stored fact
+      setChatHistory([
+        {
+          type: 'ai',
+          text: `👋 Welcome to Eco Buddy! I'm here to help with sustainability questions.`,
+          timestamp: new Date()
+        },
+        {
+          type: 'ai',
+          text: `📚 Daily Fun Fact: ${storedFact}`,
+          timestamp: new Date(Date.now() + 100)
+        }
+      ]);
     }
   }, []);
 
@@ -127,7 +151,36 @@ export function AiBuddy({
     return funFacts[Math.floor(Math.random() * funFacts.length)];
   };
 
+  // Handle clicking on the AI avatar or message bubble to get a random fact
+  const handleAiClick = () => {
+    const randomFact = getRandomFact();
+    setChatHistory(prev => [
+      ...prev,
+      {
+        type: 'ai',
+        text: `💡 Did you know? ${randomFact}`,
+        timestamp: new Date()
+      }
+    ]);
+  };
+
   const generateResponse = input => {
+    // Handle CO2 emissions specific questions
+    if ((input.includes('co2') || input.includes('carbon dioxide') || input.includes('emission')) && 
+        (input.includes('what') || input.includes('how') || input.includes('why') || 
+         input.includes('tell') || input.includes('explain'))) {
+      
+      // Look for specific CO2 topics in knowledge base
+      for (const [key, value] of Object.entries(knowledgeBase)) {
+        if (input.includes(key)) {
+          return value;
+        }
+      }
+      
+      // Default CO2 emissions response if no specific match
+      return 'CO2 emissions come from burning fossil fuels, deforestation, and industrial processes. They trap heat in our atmosphere causing global warming. The average person generates about 4 tons of CO2 each year. Would you like a specific fact about CO2 emissions? 🌍';
+    }
+    
     // Check if user is asking for a fact
     if (input.includes('fact') || input.includes('tell me something') || input.includes('did you know')) {
       return `Here's a CO2 fact: ${getRandomFact()}`;
@@ -142,7 +195,7 @@ export function AiBuddy({
 
     // Handle common questions
     if (input.includes('help') || input.includes('what can you do')) {
-      return 'I can help you track your carbon footprint, provide eco-friendly tips, answer questions about sustainability, and share facts about carbon emissions! What would you like to know? 🌱';
+      return 'I can help you track your carbon footprint, provide eco-friendly tips, answer questions about CO2 emissions and sustainability, and share fun environmental facts! Just ask me anything or click on my avatar for a random fact. 🌱';
     }
     
     if (input.includes('tip') || input.includes('advice') || input.includes('suggestion')) {
@@ -152,7 +205,11 @@ export function AiBuddy({
         "Unplug electronics when not in use - even when turned off, they consume standby power. 🔌",
         "Replace standard light bulbs with LEDs to reduce energy consumption by up to 90%! 💡",
         "Try a meatless Monday! Reducing meat consumption even once a week makes a difference. 🥗",
-        "Use cold water for laundry when possible - it saves energy and is gentler on your clothes! 👕"
+        "Use cold water for laundry when possible - it saves energy and is gentler on your clothes! 👕",
+        "Plant trees or support reforestation projects to help absorb CO2 from the atmosphere! 🌱",
+        "Choose energy-efficient appliances with ENERGY STAR ratings to reduce your home's emissions. ⭐",
+        "Consider installing solar panels to generate clean, renewable electricity for your home! ☀️",
+        "Reduce food waste by planning meals, storing food properly, and composting scraps. 🍎"
       ];
       return tips[Math.floor(Math.random() * tips.length)];
     }
@@ -162,11 +219,11 @@ export function AiBuddy({
     }
 
     if (input.includes('hello') || input.includes('hi') || input.includes('hey')) {
-      return "Hello! I'm your Eco Buddy, here to help with all things sustainability. How can I assist you today? 🌱";
+      return "Hello! I'm your Eco Buddy, here to help with all things sustainability and CO2 emissions. How can I assist you today? You can also click on my avatar for a random eco-fact! 🌱";
     }
 
     if (input.includes('thank')) {
-      return "You're welcome! Always happy to help on your eco-friendly journey. 💚";
+      return "You're welcome! Always happy to help on your eco-friendly journey. Click on my avatar anytime for a random CO2 fact! 💚";
     }
 
     if (input.includes('how') && input.includes('reduce')) {
@@ -174,7 +231,7 @@ export function AiBuddy({
     }
 
     // If no specific matches, provide a general response with a random fact
-    return `I'm here to help with your eco-friendly journey! ${getRandomFact()} Feel free to ask about carbon footprints, sustainability tips, or your progress. 🌱`;
+    return `I'm here to help with your eco-friendly journey! ${getRandomFact()} Feel free to ask about carbon footprints, CO2 emissions, sustainability tips, or your progress. You can also click on my avatar anytime for a random fact! 🌱`;
   };
 
   if (!isVisible) {
@@ -226,12 +283,22 @@ export function AiBuddy({
                   className={`flex ${chat.type === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   {chat.type === 'ai' && (
-                    <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center mr-2">
+                    <div 
+                      className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center mr-2 cursor-pointer hover:bg-green-200 transition-colors"
+                      onClick={handleAiClick}
+                      title="Click for a random fact!"
+                    >
                       <span className="text-lg">🌱</span>
                     </div>
                   )}
                   <div 
-                    className={`max-w-[80%] rounded-lg p-3 ${chat.type === 'user' ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-800'}`}
+                    className={`max-w-[80%] rounded-lg p-3 ${
+                      chat.type === 'user' 
+                        ? 'bg-green-500 text-white' 
+                        : 'bg-gray-100 text-gray-800 cursor-pointer hover:bg-gray-200'
+                    }`}
+                    onClick={chat.type === 'ai' ? handleAiClick : undefined}
+                    title={chat.type === 'ai' ? "Click for a random fact!" : ""}
                   >
                     <p className="text-sm">{chat.text}</p>
                   </div>
@@ -246,7 +313,7 @@ export function AiBuddy({
                   type="text" 
                   value={userInput} 
                   onChange={e => setUserInput(e.target.value)} 
-                  placeholder="Ask me anything..." 
+                  placeholder="Ask about CO2 emissions..." 
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm" 
                 />
                 <button 
