@@ -3,7 +3,6 @@
 **Live Demo:** [https://www.roridemonslayer-personal-carbon-footprint-tracker.com](https://www.roridemonslayer-personal-carbon-footprint-tracker.com)  
 **License:** [MIT](LICENSE)  
 
-![Sustainify Banner](./assets/banner.png) *(Recommended dimensions: 1200x600px)*
 
 ---
 
