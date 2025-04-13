@@ -1,6 +1,8 @@
 import React from 'react';
 import { LineChart, BarChart, PieChart, Activity, Globe, Leaf } from 'lucide-react';
-export const AboutSection = () => {
+
+// Add onGetStarted prop to handle navigation
+export const AboutSection = ({ onGetStarted }) => {
   return <section id="about" className="bg-white w-full py-20 px-4">
       <div className="container mx-auto max-w-6xl">
         <div className="text-center mb-16">
@@ -87,7 +89,9 @@ export const AboutSection = () => {
             Join Siustawinfy today and take the first step toward a more
             sustainable future.
           </p>
-          <button className="px-8 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-md font-medium transition-colors text-lg">
+          <button 
+            onClick={onGetStarted} 
+            className="px-8 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-md font-medium transition-colors text-lg">
             Get Started Now
           </button>
         </div>

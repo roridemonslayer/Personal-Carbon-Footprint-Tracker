@@ -1,14 +1,32 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { CarIcon, HomeIcon, ShoppingBagIcon, TrendingDownIcon } from 'lucide-react';
-export function Dashboard({
-  footprintData
-}) {
+import { useNavigate } from 'react-router-dom';
+
+export function Dashboard({ footprintData = { daily: 0, weekly: 0, monthly: 0, total: 0 } }) {
+  const navigate = useNavigate();
+  const [user, setUser] = useState(null);
+  
+  useEffect(() => {
+    // Check if user is logged in
+    const userData = localStorage.getItem('user');
+    
+    if (!userData) {
+      // Redirect to signup if not logged in
+      navigate('/signup');
+      return;
+    }
+    
+    // Set user data if logged in
+    setUser(JSON.parse(userData));
+  }, [navigate]);
+
   const {
     daily,
     weekly,
     monthly,
     total
   } = footprintData;
+  
   const metrics = [{
     label: 'Daily Footprint',
     value: daily.toFixed(2),
@@ -34,7 +52,34 @@ export function Dashboard({
     icon: <TrendingDownIcon size={24} className="text-teal-500" />,
     bgColor: 'bg-teal-50'
   }];
-  return <div>
+
+  // If no user data yet, show loading
+  if (!user) {
+    return (
+      <div className="flex justify-center items-center p-8">
+        <p>Loading dashboard...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      {/* User welcome message */}
+      <div className="mb-6 flex justify-between items-center">
+        <h2 className="text-2xl font-bold">
+          Welcome, {user.name}
+        </h2>
+        <button 
+          onClick={() => {
+            localStorage.removeItem('user');
+            navigate('/');
+          }}
+          className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded text-gray-800 text-sm"
+        >
+          Sign Out
+        </button>
+      </div>
+      
       <h2 className="text-2xl font-bold mb-6">
         Your Carbon Footprint Dashboard
       </h2>
@@ -120,5 +165,6 @@ export function Dashboard({
           </ul>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 }

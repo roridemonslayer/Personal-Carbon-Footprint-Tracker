@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { Dashboard } from './components/Dashboard';
 import { ActivityForm } from './components/ActivityForm';
@@ -11,9 +12,54 @@ import { calculateFootprint } from './utils/carbonCalculator';
 import { Navbar } from './components/Navbar';
 import { HeroSection } from './components/HeroSection';
 import { AboutSection } from './components/AboutSection';
+import { SignupPage } from './components/SignupPage';
+
+// Protected route component
+const ProtectedRoute = ({ children }) => {
+  const isAuthenticated = localStorage.getItem('user') !== null;
+  if (!isAuthenticated) {
+    return <Navigate to="/signup" replace />;
+  }
+  return children;
+};
+
+// Main application component with tabs
+const MainApp = ({ footprintData, activities, handleAddActivity }) => {
+  const [activeTab, setActiveTab] = useState('dashboard');
+  
+  return (
+    <>
+      <Layout activeTab={activeTab} setActiveTab={setActiveTab}>
+        {activeTab === 'dashboard' && <Dashboard footprintData={footprintData} />}
+        {activeTab === 'activity' && <ActivityForm onAddActivity={handleAddActivity} />}
+        {activeTab === 'charts' && <FootprintChart activities={activities} />}
+        {activeTab === 'tips' && <TipsSection footprintData={footprintData} />}
+        {activeTab === 'compare' && <ComparisonSection footprintData={footprintData} />}
+        {activeTab === 'streaks' && <EcoStreaks />}
+      </Layout>
+      <AiBuddy activeTab={activeTab} footprintData={footprintData} activities={activities} />
+    </>
+  );
+};
+
+// Landing page component
+const LandingPage = () => {
+  const navigate = useNavigate();
+  
+  const handleGetStarted = () => {
+    navigate('/signup');
+  };
+  
+  return (
+    <>
+      <Navbar />
+      <HeroSection />
+      <AboutSection onGetStarted={handleGetStarted} />
+    </>
+  );
+};
 
 export function App() {
-  const [activeTab, setActiveTab] = useState('dashboard');
   const [activities, setActivities] = useState([]);
   const [footprintData, setFootprintData] = useState({
     daily: 0,
@@ -21,54 +67,68 @@ export function App() {
     monthly: 0,
     total: 0
   });
-  const [isMainApp, setIsMainApp] = useState(true); // State to toggle between app versions
-
+  const [isMainApp, setIsMainApp] = useState(false);
+  
   useEffect(() => {
+    // Check if user is logged in
+    const user = localStorage.getItem('user');
+    if (user) {
+      setIsMainApp(true);
+    }
+    
     if (activities.length > 0) {
       const calculatedFootprint = calculateFootprint(activities);
       setFootprintData(calculatedFootprint);
     }
   }, [activities]);
-
+  
   const handleAddActivity = activity => {
     setActivities([...activities, {
       ...activity,
       id: Date.now()
     }]);
   };
-
-  // Consolidated return with conditional rendering
+  
   return (
-    <div className="relative w-full min-h-screen bg-white">
-      {isMainApp ? (
-        // Original app with tabs
-        <>
-          <Layout activeTab={activeTab} setActiveTab={setActiveTab}>
-            {activeTab === 'dashboard' && <Dashboard footprintData={footprintData} />}
-            {activeTab === 'activity' && <ActivityForm onAddActivity={handleAddActivity} />}
-            {activeTab === 'charts' && <FootprintChart activities={activities} />}
-            {activeTab === 'tips' && <TipsSection footprintData={footprintData} />}
-            {activeTab === 'compare' && <ComparisonSection footprintData={footprintData} />}
-            {activeTab === 'streaks' && <EcoStreaks />}
-          </Layout>
-          <AiBuddy activeTab={activeTab} footprintData={footprintData} activities={activities} />
-        </>
-      ) : (
-        // Landing page structure
-        <>
-          <Navbar />
-          <HeroSection />
-          <AboutSection />
-        </>
-      )}
-      
-      {/* Toggle button to switch between versions */}
-      <button 
-        onClick={() => setIsMainApp(!isMainApp)}
-        className="fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-md"
-      >
-        Switch to {isMainApp ? 'Landing Page' : 'Main App'}
-      </button>
-    </div>
+    <BrowserRouter>
+      <div className="relative w-full min-h-screen bg-white">
+        <Routes>
+          {/* Landing page route */}
+          <Route path="/" element={<LandingPage />} />
+          
+          {/* Signup page */}
+          <Route path="/signup" element={<SignupPage />} />
+          
+          {/* Protected app routes */}
+          <Route 
+            path="/app/*" 
+            element={
+              <ProtectedRoute>
+                <MainApp 
+                  footprintData={footprintData} 
+                  activities={activities} 
+                  handleAddActivity={handleAddActivity} 
+                />
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* Redirect to app if logged in */}
+          <Route 
+            path="/dashboard" 
+            element={
+              localStorage.getItem('user') ? 
+                <Navigate to="/app" replace /> : 
+                <Navigate to="/signup" replace />
+            } 
+          />
+          
+          {/* Catch-all redirect */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+        
+       
+      </div>
+    </BrowserRouter>
   );
 }
