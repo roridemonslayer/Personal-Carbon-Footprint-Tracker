@@ -10,7 +10,7 @@ export const AboutSection = ({ onGetStarted }) => {
             Understand Your Environmental Impact
           </h2>
           <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            Siustawinfy provides powerful tools to track, analyze, and reduce
+          Sustainify provides powerful tools to track, analyze, and reduce
             your carbon footprint, helping you make more sustainable choices
             every day.
           </p>
@@ -86,7 +86,7 @@ export const AboutSection = ({ onGetStarted }) => {
             Ready to Reduce Your Carbon Footprint?
           </h3>
           <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-            Join Siustawinfy today and take the first step toward a more
+            Join Sustainify today and take the first step toward a more
             sustainable future.
           </p>
           <button 
