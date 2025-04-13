@@ -40,7 +40,7 @@ export function Layout({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </span>
-            EcoTrack
+           Sustainify 
           </h1>
           <p className="text-gray-500 text-sm">
             Personal Carbon Footprint Tracker
